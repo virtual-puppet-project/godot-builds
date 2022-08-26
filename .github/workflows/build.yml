@@ -1,0 +1,55 @@
+name: Windows Builds
+on: [workflow_dispatch]
+
+env:
+  GODOT_REPO: godotengine/godot
+  GODOT_REF: 3.5
+  GODOT_PATH: godot/
+
+  APPLIER_REPO: virtual-puppet-project/godot-module-applier
+  APPLIER_REF: senpai
+  APPLIER_PATH: godot-module-applier/
+
+  LINUX_BINARY_EDITOR: godot.x11.opt.tools.64
+  LINUX_BINARY_EDITOR_NAME: Godot_v3.x-stable_linux_x11_editor.64.zip
+
+jobs:
+  # build-windows:
+  #   runs-on: windows-2019
+  #   steps:
+  #     - name: Checkout Godot
+  #       uses: actions/checkout@v3
+  #       with:
+  #         repository: ${GODOT_REPO}
+  #         ref: ${GODOT_REF}
+  #         path: ${GODOT_PATH}
+  #     - name: Checkout applier
+  #       uses: actions/checkout@v3
+  #       with:
+  #         repository: ${APPLIER_REPO}
+  #         ref: ${APPLIER_REF}
+  #         path: ${APPLIER_PATH}
+
+  build-linux:
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout Godot
+        uses: actions/checkout@v3
+        with:
+          repository: ${GODOT_REPO}
+          ref: ${GODOT_REF}
+          path: ${GODOT_PATH}
+      - name: Checkout applier
+        uses: actions/checkout@v3
+        with:
+          repository: ${APPLIER_REPO}
+          ref: ${APPLIER_REF}
+          path: ${APPLIER_PATH}
+      - name: Build
+        run: python3 ${APPLIER_PATH}/applier.py --godot-directory ${GODOT_PATH} apply --modules-file ${APPLIER_PATH}/modules_file.txt
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${LINUX_BINARY_EDITOR_NAME}
+          path: ${GODOT_REPO}/bin/${LINUX_BINARY_EDITOR}
+          if-no-files-found: error
