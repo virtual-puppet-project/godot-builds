@@ -74,5 +74,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{ env.LINUX_BINARY_EDITOR_NAME }}
-          path: ${{ env.GODOT_REPO }}/bin/${{ env.LINUX_BINARY_EDITOR }}
+          path: ${{ env.GODOT_PATH }}/bin/${{ env.LINUX_BINARY_EDITOR }}
           if-no-files-found: error
