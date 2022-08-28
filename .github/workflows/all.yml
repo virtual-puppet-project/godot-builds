@@ -18,25 +18,32 @@ env:
   LINUX_BINARY_EDITOR_NAME: Godot_v3.x-stable_linux_x11_editor.64.zip
 
 jobs:
-  # build-windows:
-  #   runs-on: windows-2019
-  #   steps:
-  #     - name: Checkout Godot
-  #       uses: actions/checkout@v3
-  #       with:
-  #         repository: ${GODOT_REPO}
-  #         ref: ${GODOT_REF}
-  #         path: ${GODOT_PATH}
-  #     - name: Checkout applier
-  #       uses: actions/checkout@v3
-  #       with:
-  #         repository: ${APPLIER_REPO}
-  #         ref: ${APPLIER_REF}
-  #         path: ${APPLIER_PATH}
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Godot
+        uses: actions/checkout@v3
+        with:
+          repository: ${GODOT_REPO}
+          ref: ${GODOT_REF}
+          path: ${GODOT_PATH}
+      - name: Checkout applier
+        uses: actions/checkout@v3
+        with:
+          repository: ${APPLIER_REPO}
+          ref: ${APPLIER_REF}
+          path: ${APPLIER_PATH}
 
   build-linux:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup-deps
+        with:
+          godot-path: ${{ env.GODOT_PATH }}
+          godot-module-applier-path: ${{ env.APPLIER_PATH }}
+          godot-build-scripts-path: ${{ env.BUILD_SCRIPTS_PATH }}
+
       - name: Checkout Godot
         uses: actions/checkout@v3
         with:

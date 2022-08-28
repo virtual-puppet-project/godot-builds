@@ -1,0 +1,50 @@
+name: Setup dependencies
+description: Setup all dependencies for the build
+
+inputs:
+  godot-path:
+    description: The path to the Godot repo root
+    required: true
+  godot-module-applier-path:
+    description: The path to the module applier repo root
+    required: true
+  godot-build-scripts-path:
+    description: The path to the godot build scripts repo root
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout Godot
+      uses: actions/checkout@v3
+      with:
+        repository: godotengine/godot
+        ref: 3.5
+        path: ${{ inputs.godot-path }}
+    - name: Checkout applier script
+      uses: actions/checkout@v3
+      with:
+        repository: virtual-puppet-project/godot-module-applier
+        ref: senpai
+        path: ${{ inputs.godot-module-applier-path }}
+    - name: Checkout build scripts
+      uses: actions/checkout@v3
+      with:
+        repository: virtual-puppet-project/godot-build-scripts
+        ref: senpai
+        path: ${{ inputs.godot-build-scripts-path }}
+    - name: Copy all dependencies into the godot folder
+      shell: bash
+      run: |
+        cp ${{ inputs.godot-module-applier-path }}/applier.py ${{ inputs.godot-path }}
+        cp ${{ inputs.godot-module-applier-path }}/modules_file.txt ${{ inputs.godot-path }}
+
+        cp ${{ inputs.godot-build-scripts-path }}/build-* ${{ inputs.godot-path }}
+
+        cd ${{ inputs.godot-path }}
+
+        python applier.py apply
+    - name: Install Linux dependencies
+      if: matrix.os == "ubuntu-latest"
+      shell: bash
+      run: sudo apt-get install build-essential scons pkg-config libx11-dev libxcursor-dev libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev libxi-dev libxrandr-dev yasm
