@@ -39,6 +39,7 @@ runs:
         cp ${{ inputs.godot-module-applier-path }}/applier.py ${{ inputs.godot-path }}
         cp ${{ inputs.godot-module-applier-path }}/modules_file.txt ${{ inputs.godot-path }}
 
+        chmod +x ${{ inputs.godot-build-scripts-path }}/build-*
         cp ${{ inputs.godot-build-scripts-path }}/build-* ${{ inputs.godot-path }}
 
         cd ${{ inputs.godot-path }}
@@ -48,3 +49,11 @@ runs:
       if: matrix.os == "ubuntu-latest"
       shell: bash
       run: sudo apt-get install build-essential scons pkg-config libx11-dev libxcursor-dev libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev libxi-dev libxrandr-dev yasm
+    - name: Install Windows dependencies
+      if: matrix.os == "windows-latest"
+      shell: bash
+      run: pip install scons
+    - name: Install MacOS dependencies
+      if: matrix.os == "macOS-latest"
+      shell: bash
+      run: brew install scons yasm
