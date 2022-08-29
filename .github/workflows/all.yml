@@ -26,7 +26,7 @@ jobs:
             os: ubuntu-latest
             build-script: build-editor.sh
             bin: godot/bin/godot.x11.opt.tools.64
-          - name: Godot_v3.x-stable_linux_x11_release.64
+          - name: Godot_v3.x-stable_linux_release.64
             os: ubuntu-latest
             build-script: build-normal-template.sh
             bin: godot/bin/godot.x11.opt.64
