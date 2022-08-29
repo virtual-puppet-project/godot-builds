@@ -1,0 +1,67 @@
+name: All Builds
+on: [workflow_dispatch]
+
+env:
+  GODOT_REPO: godotengine/godot
+  GODOT_REF: 3.5
+  GODOT_PATH: godot/
+
+  APPLIER_REPO: virtual-puppet-project/godot-module-applier
+  APPLIER_REF: senpai
+  APPLIER_PATH: godot-module-applier/
+
+  BUILD_SCRIPTS_REPO: virtual-puppet-project/godot-build-scripts
+  BUILD_SCRIPTS_REF: senpai
+  BUILD_SCRIPTS_PATH: godot-build-scripts
+
+jobs:
+  build-all:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # os: [...] not used since I can't think of a way to reconcile the
+          # binary name against the OS
+          - name: Godot_v3.x-stable_linux_editor.64
+            os: ubuntu-latest
+            build-script: build-editor.sh
+            bin: godot/bin/godot.x11.opt.tools.64
+          - name: Godot_v3.x-stable_linux_x11_release.64
+            os: ubuntu-latest
+            build-script: build-normal-template.sh
+            bin: godot/bin/godot.x11.opt.64
+
+          - name: Godot_v3.x-stable_windows_editor.64
+            os: windows-latest
+            build-script: build-editor.sh
+            bin: godot/bin/godot.windows.opt.tools.64.exe
+          - name: Godot_v3.x-stable_windows_release.64
+            os: windows-latest
+            build-script: build-normal-template.sh
+            bin: godot/bin/godot.windows.opt.64.exe
+
+          - name: Godot_v3.x-stable_osx_editor.64
+            os: macos-latest
+            build-script: build-editor.sh
+            bin: godot/bin/godot.osx.opt.tools.universal
+          - name: Godot_v3.x-stable_osx_editor.64
+            os: macos-latest
+            build-script: build-normal-template.sh
+            bin: godot/bin/godot.osx.opt.universal
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup-deps
+        with:
+          godot-path: ${{ env.GODOT_PATH }}
+          godot-module-applier-path: ${{ env.APPLIER_PATH }}
+          godot-build-scripts-path: ${{ env.BUILD_SCRIPTS_PATH }}
+      - name: Build
+        working-directory: ${{ env.GODOT_PATH }}
+        run: ./${{ matrix.build-script }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.name }}
+          path: ${{ matrix.bin }}
+          if-no-files-found: error
