@@ -8,9 +8,6 @@ inputs:
   godot-module-applier-path:
     description: The path to the module applier repo root
     required: true
-  godot-build-scripts-path:
-    description: The path to the godot build scripts repo root
-    required: true
 
 runs:
   using: composite
@@ -39,12 +36,9 @@ runs:
         cp ${{ inputs.godot-module-applier-path }}/applier.py ${{ inputs.godot-path }}
         cp ${{ inputs.godot-module-applier-path }}/modules_file.txt ${{ inputs.godot-path }}
 
-        chmod +x ${{ inputs.godot-build-scripts-path }}/build-*
-        cp ${{ inputs.godot-build-scripts-path }}/build-* ${{ inputs.godot-path }}
-
         cd ${{ inputs.godot-path }}
 
-        python applier.py apply
+        python3 applier.py apply
     - name: Install Linux dependencies
       if: matrix.os == 'ubuntu-latest'
       shell: bash

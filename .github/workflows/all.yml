@@ -10,10 +10,6 @@ env:
   APPLIER_REF: senpai
   APPLIER_PATH: godot-module-applier/
 
-  BUILD_SCRIPTS_REPO: virtual-puppet-project/godot-build-scripts
-  BUILD_SCRIPTS_REF: senpai
-  BUILD_SCRIPTS_PATH: godot-build-scripts
-
 jobs:
   build-all:
     strategy:
@@ -61,7 +57,6 @@ jobs:
         with:
           godot-path: ${{ env.GODOT_PATH }}
           godot-module-applier-path: ${{ env.APPLIER_PATH }}
-          godot-build-scripts-path: ${{ env.BUILD_SCRIPTS_PATH }}
       - name: Build
         working-directory: ${{ env.GODOT_PATH }}
         run: ${{ matrix.build-script }}
