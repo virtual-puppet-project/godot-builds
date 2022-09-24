@@ -24,21 +24,27 @@ runs:
         repository: virtual-puppet-project/godot-module-applier
         ref: senpai
         path: ${{ inputs.godot-module-applier-path }}
-    - name: Checkout build scripts
-      uses: actions/checkout@v3
-      with:
-        repository: virtual-puppet-project/godot-build-scripts
-        ref: senpai
-        path: ${{ inputs.godot-build-scripts-path }}
     - name: Copy all dependencies into the godot folder
       shell: bash
       run: |
+        ls
         cp ${{ inputs.godot-module-applier-path }}/applier.py ${{ inputs.godot-path }}
         cp ${{ inputs.godot-module-applier-path }}/modules_file.txt ${{ inputs.godot-path }}
 
         cd ${{ inputs.godot-path }}
 
-        python3 applier.py apply
+        PYTHON_BINARY=$(which python3)
+
+        if [[ -z "$PYTHON_BINARY" ]]; then
+            echo "python3 not found. Searching for python instead."
+            PYTHON_BINARY=$(which python)
+            if [[ -z "$PYTHON_BINARY" ]]; then
+                echo "Python 3 must be available on your path. Exiting."
+                exit 1
+            fi
+        fi
+
+        "$PYTHON_BINARY" applier.py apply
     - name: Install Linux dependencies
       if: matrix.os == 'ubuntu-latest'
       shell: bash
