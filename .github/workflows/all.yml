@@ -56,6 +56,10 @@ jobs:
             os: ubuntu-latest
             build-script: scons platform=x11 target=release tools=no use_lto=yes -j8
             bin: godot/bin/godot.x11.opt.64
+          - name: Godot_v3.x-stable_linux_headless.64
+            os: ubuntu-latest
+            build-script: scons platform=server target=release_debug tools=yes -j8
+            bin: godot/bin/godot.x11.opt.headless.64
 
           - name: Godot_v3.x-stable_windows_editor.64
             os: windows-latest
@@ -101,10 +105,20 @@ jobs:
           path: ${{ matrix.bin }}
           if-no-files-found: error
 
+      - name: Set zip name
+        shell: bash
+        run: echo "ZIP_PATH=${{ format('{0}.zip', matrix.bin) }}" >> $GITHUB_ENV
+
+      - name: Pack binary
+        shell: bash
+        run: |
+          strip ${{ matrix.bin }}
+          zip ${{ env.ZIP_PATH }} ${{ matrix.bin }}
+
       # Retag and upload semi-permament binaries
       - name: Upload release artifacts
         uses: you-win/action-gh-release@v1
         with:
-          files: ${{ matrix.bin }}
-          name: ${{ matrix.name }}
+          files: ${{ env.ZIP_PATH }}
+          name: Latest
           tag_name: ${{ env.TAG }}
