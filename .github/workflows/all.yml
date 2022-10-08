@@ -59,13 +59,13 @@ jobs:
           - name: Godot_v3.x-stable_linux_headless.64
             os: ubuntu-latest
             build-script: scons platform=server target=release_debug tools=yes -j8
-            bin: godot/bin/godot.x11.opt.headless.64
+            bin: godot/bin/godot_server.x11.opt.tools.64
 
-          - name: Godot_v3.x-stable_windows_editor.64
+          - name: Godot_v3.x-stable_windows_editor.64.exe
             os: windows-latest
             build-script: scons platform=windows target=release_debug tools=yes -j8
             bin: godot/bin/godot.windows.opt.tools.64.exe
-          - name: Godot_v3.x-stable_windows_release.64
+          - name: Godot_v3.x-stable_windows_release.64.exe
             os: windows-latest
             build-script: scons platform=windows target=release tools=no use_lto=yes -j8
             bin: godot/bin/godot.windows.opt.64.exe
@@ -96,24 +96,26 @@ jobs:
         working-directory: ${{ env.GODOT_PATH }}
         run: ${{ matrix.build-script }}
 
+      - name: Set targz name
+        shell: bash
+        run: echo "TAR_PATH=${{ format('{0}.tar.gz', matrix.name) }}" >> $GITHUB_ENV
+
+      - name: Pack binary
+        shell: bash
+        run: |
+          # Use nice, readable names for the binaries
+          mv ${{ matrix.bin }} ${{ matrix.name }}
+          strip ${{ matrix.name }}
+          tar -czvf ${{ env.TAR_PATH }} ${{ matrix.name }}
+
       # Basic artifact upload, artifacts are ephemeral
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         if: inputs.include-artifacts == 'true'
         with:
           name: ${{ matrix.name }}
-          path: ${{ matrix.bin }}
+          path: ${{ matrix.name }}
           if-no-files-found: error
-
-      - name: Set targz name
-        shell: bash
-        run: echo "TAR_PATH=${{ format('{0}.tar.gz', matrix.bin) }}" >> $GITHUB_ENV
-
-      - name: Pack binary
-        shell: bash
-        run: |
-          strip ${{ matrix.bin }}
-          tar -czvf ${{ env.TAR_PATH }} ${{ matrix.bin }}
 
       # Retag and upload semi-permament binaries
       - name: Upload release artifacts
