@@ -105,20 +105,20 @@ jobs:
           path: ${{ matrix.bin }}
           if-no-files-found: error
 
-      - name: Set zip name
+      - name: Set targz name
         shell: bash
-        run: echo "ZIP_PATH=${{ format('{0}.zip', matrix.bin) }}" >> $GITHUB_ENV
+        run: echo "TAR_PATH=${{ format('{0}.tar.gz', matrix.bin) }}" >> $GITHUB_ENV
 
       - name: Pack binary
         shell: bash
         run: |
           strip ${{ matrix.bin }}
-          zip ${{ env.ZIP_PATH }} ${{ matrix.bin }}
+          tar -czvf ${{ env.TAR_PATH }} ${{ matrix.bin }}
 
       # Retag and upload semi-permament binaries
       - name: Upload release artifacts
         uses: you-win/action-gh-release@v1
         with:
-          files: ${{ env.ZIP_PATH }}
+          files: ${{ env.TAR_PATH }}
           name: Latest
           tag_name: ${{ env.TAG }}
