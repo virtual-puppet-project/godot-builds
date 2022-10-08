@@ -1,5 +1,11 @@
 name: All Builds
-on: [workflow_dispatch]
+on:
+  workflow_dispatch:
+    inputs:
+      include-artifacts:
+        type: boolean
+        description: Upload artifacts?
+        required: true
 
 env:
   GODOT_REPO: godotengine/godot
@@ -10,8 +16,32 @@ env:
   APPLIER_REF: senpai
   APPLIER_PATH: godot-module-applier/
 
+  TAG: latest
+
 jobs:
+  cleanup-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old tag and release
+        uses: you-win/delete-tag-and-release@v0.2.0
+        with:
+          delete_release: true
+          tag_name: ${{ env.TAG }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - uses: actions/checkout@v3
+      - name: Update tag
+        shell: bash
+        run: |
+          git config --global user.name "$(curl https://api.github.com/users/${{ github.actor }} | jq .name)"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+
+          git tag ${{ env.TAG }}
+
+          git push --tags
+
   build-all:
+    needs: cleanup-release
     strategy:
       fail-fast: false
       matrix:
@@ -43,7 +73,7 @@ jobs:
               scons platform=osx arch=x86_64 target=release_debug tools=yes -j8
               lipo -create bin/godot.osx.opt.tools.arm64 bin/godot.osx.opt.tools.x86_64 -output bin/godot.osx.opt.tools.universal
             bin: godot/bin/godot.osx.opt.tools.universal
-          - name: Godot_v3.x-stable_osx_editor.64
+          - name: Godot_v3.x-stable_osx_release.64
             os: macos-latest
             build-script: |
               scons platform=osx arch=arm64 target=release tools=no use_lto=yes -j8
@@ -57,12 +87,24 @@ jobs:
         with:
           godot-path: ${{ env.GODOT_PATH }}
           godot-module-applier-path: ${{ env.APPLIER_PATH }}
+
       - name: Build
         working-directory: ${{ env.GODOT_PATH }}
         run: ${{ matrix.build-script }}
+
+      # Basic artifact upload, artifacts are ephemeral
       - name: Upload artifact
         uses: actions/upload-artifact@v3
+        if: inputs.include-artifacts == 'true'
         with:
           name: ${{ matrix.name }}
           path: ${{ matrix.bin }}
           if-no-files-found: error
+
+      # Retag and upload semi-permament binaries
+      - name: Upload release artifacts
+        uses: you-win/action-gh-release@v1
+        with:
+          files: ${{ matrix.bin }}
+          name: ${{ matrix.name }}
+          tag_name: ${{ env.TAG }}
